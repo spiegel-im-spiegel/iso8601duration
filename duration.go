@@ -4,19 +4,23 @@ package duration
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"text/template"
 	"time"
+
+	"github.com/goark/errs"
 )
 
 var (
-	// ErrBadFormat is returned when parsing fails
+	// ErrBadFormat is returned when parsing fails.
 	ErrBadFormat = errors.New("bad format string")
 
-	// ErrNoMonth is raised when a month is in the format string
+	// ErrNoMonth is raised when a month is in the format string.
 	ErrNoMonth = errors.New("no months allowed")
+
+	// ErrField is raised when a field name is unknown.
+	ErrField = errors.New("unknown field name")
 
 	tmpl = template.Must(template.New("duration").Parse(`P{{if .Years}}{{.Years}}Y{{end}}{{if .Weeks}}{{.Weeks}}W{{end}}{{if .Days}}{{.Days}}D{{end}}{{if .HasTimePart}}T{{end }}{{if .Hours}}{{.Hours}}H{{end}}{{if .Minutes}}{{.Minutes}}M{{end}}{{if .Seconds}}{{.Seconds}}S{{end}}`))
 
@@ -46,7 +50,7 @@ func FromString(dur string) (*Duration, error) {
 		match = full.FindStringSubmatch(dur)
 		re = full
 	} else {
-		return nil, ErrBadFormat
+		return nil, errs.Wrap(ErrBadFormat, errs.WithContext("dur", dur))
 	}
 
 	d := &Duration{}
@@ -65,7 +69,7 @@ func FromString(dur string) (*Duration, error) {
 		case "year":
 			d.Years = val
 		case "month":
-			return nil, ErrNoMonth
+			return nil, errs.Wrap(ErrNoMonth, errs.WithContext("name", name))
 		case "week":
 			d.Weeks = val
 		case "day":
@@ -77,7 +81,7 @@ func FromString(dur string) (*Duration, error) {
 		case "second":
 			d.Seconds = val
 		default:
-			return nil, errors.New(fmt.Sprintf("unknown field %s", name))
+			return nil, errs.Wrap(ErrField, errs.WithContext("name", name))
 		}
 	}
 

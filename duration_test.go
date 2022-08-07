@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	duration "github.com/channelmeter/iso8601duration"
+	duration "github.com/spiegel-im-spiegel/iso8601duration"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,11 +13,11 @@ func TestFromString(t *testing.T) {
 
 	// test with bad format
 	_, err := duration.FromString("asdf")
-	assert.Equal(t, err, duration.ErrBadFormat)
+	assert.EqualError(t, err, "bad format string")
 
 	// test with month
 	_, err = duration.FromString("P1M")
-	assert.Equal(t, err, duration.ErrNoMonth)
+	assert.EqualError(t, err, "no months allowed")
 
 	// test with good full string
 	dur, err := duration.FromString("P1Y2DT3H4M5S")
